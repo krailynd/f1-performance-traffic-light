@@ -5,32 +5,35 @@ import pandas as pd
 
 def apply_f1_theme():
     plt.style.use('dark_background')
-    plt.rcParams['font.sans-serif'] = 'sans-serif'
+    plt.rcParams['font.family'] = 'DejaVu Sans'
     plt.rcParams['axes.edgecolor'] = '#444444'
     plt.rcParams['axes.linewidth'] = 0.8
 
 def plot_consistency_violin(clean_laps: pd.DataFrame, output_path: str = "reports/figures/consistency_violin.png"):
+    """Genera un Violin Plot comparativo de distribución y consistencia de tiempos de vuelta."""
     apply_f1_theme()
-    fig, ax = plt.subplots(figsize=(14, 7), dpi=300)
+    fig, ax = plt.subplots(figsize=(13, 6.5), dpi=300)
     
-    # Ordenar pilotos por tiempo mediano
-    order = clean_laps.groupby('Driver')['LapTimeSeconds'].median().sort_values().index
+    order = list(clean_laps.groupby('driver')['lap_time_seconds'].median().sort_values().index)
     
     sns.violinplot(
         data=clean_laps,
-        x='Driver',
-        y='LapTimeSeconds',
+        x='driver',
+        y='lap_time_seconds',
+        hue='driver',
         order=order,
         inner='quartile',
-        palette='flare',
+        palette='magma',
+        legend=False,
         cut=0,
         ax=ax
     )
     
-    ax.set_title("Distribución y Consistencia de Tiempos de Vuelta (Clean Laps)", fontsize=14, fontweight='bold', pad=15)
+    ax.set_title("🏎️ F1 Performance Traffic Light — Ritmo y Consistencia de Pilotos", fontsize=13, fontweight='bold', pad=15)
     ax.set_xlabel("Piloto", fontsize=11, labelpad=10)
-    ax.set_ylabel("Tiempo de Vuelta (Segundos)", fontsize=11, labelpad=10)
-    ax.grid(axis='y', linestyle='--', alpha=0.3)
+    ax.set_ylabel("Tiempo de Vuelta Limpio (Segundos)", fontsize=11, labelpad=10)
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(axis='y', linestyle='--', alpha=0.25)
     
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()

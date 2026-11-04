@@ -1,30 +1,36 @@
 import argparse
-from src.data_loader import load_race_session
-from src.clean_laps import filter_quick_laps, compute_driver_consistency
+from src.data_loader import fetch_laps_jolpica, generate_synthetic_benchmark_laps
+from src.clean_laps import filter_outliers_iqr, compute_driver_consistency
 from src.visualizer import plot_consistency_violin
 
 def main():
     parser = argparse.ArgumentParser(description="F1 Performance Traffic Light Analysis")
     parser.add_argument("--year", type=int, default=2023, help="Temporada de F1 (ej. 2023)")
-    parser.add_argument("--gp", type=str, default="Monza", help="Nombre o sede del GP (ej. Monza, Bahrain)")
+    parser.add_argument("--round", type=int, default=14, help="Número de Gran Premio (ej. 14 = Monza)")
     args = parser.parse_args()
 
-    print(f"🏎️ Cargando datos para el GP de {args.gp} {args.year}...")
-    session = load_race_session(args.year, args.gp)
+    print(f"🏎️ Cargando datos para F1 {args.year} Round {args.round}...")
+    laps_df = fetch_laps_jolpica(args.year, args.round)
     
-    print("🧹 Filtrando vueltas representativas (aislando outliers y pits)...")
-    clean = filter_quick_laps(session.laps)
+    if laps_df.empty:
+        print("⚠️ No se pudo obtener datos en vivo; generando benchmark sintético calibrado...")
+        laps_df = generate_synthetic_benchmark_laps(50)
+        
+    print(f"📊 Total de vueltas crudas cargadas: {len(laps_df)}")
     
-    print("📊 Calculando métricas de consistencia por piloto...")
+    print("🧹 Aplicando filtro matemático IQR para aislar outliers de carrera (pits, SC)...")
+    clean = filter_outliers_iqr(laps_df)
+    print(f"✨ Vueltas limpias representativas: {len(clean)} (outliers removidos: {len(laps_df) - len(clean)})")
+    
+    print("\n📋 CALCULANDO SEMÁFORO DE CONSISTENCIA Y RITMO:")
     stats = compute_driver_consistency(clean)
-    print("\n" + "="*70)
-    print("📋 TABLA DE CONSISTENCIA Y RITMO DE CARRERA:")
-    print("="*70)
-    print(stats[['Driver', 'total_laps', 'median_time', 'std_time', 'Consistency_Score']].to_string(index=False))
+    print("=" * 85)
+    print(stats[['driver', 'clean_laps_count', 'median_time', 'std_time', 'iqr_time', 'Semáforo_Consistencia']].to_string(index=False))
+    print("=" * 85)
     
-    print("\n🎨 Generando visualizaciones...")
+    print("\n🎨 Generando visualización de violines estadísticos...")
     plot_consistency_violin(clean)
-    print("✅ Análisis finalizado con éxito.")
+    print("✅ Pipeline ejecutado con éxito.")
 
 if __name__ == "__main__":
     main()
