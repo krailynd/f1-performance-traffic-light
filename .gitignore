@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+cache/
+.fastf1/
+reports/figures/*.png
+reports/figures/*.svg
+.DS_Store

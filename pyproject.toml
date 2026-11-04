@@ -1,0 +1,15 @@
+[project]
+name = "f1-performance-traffic-light"
+version = "0.1.0"
+description = "EDA y análisis de consistencia de tiempos de vuelta en Fórmula 1 con FastF1"
+authors = [{ name = "Krailynd", email = "elvis@example.com" }]
+dependencies = [
+    "fastf1>=3.4.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "scipy>=1.12.0",
+]
+readme = "README.md"
+requires-python = ">=3.10"
